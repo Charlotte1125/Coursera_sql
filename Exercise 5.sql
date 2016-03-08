@@ -42,7 +42,7 @@ order by dailyrev;
 -- answer: low: 34159.76, medium: 25037.89, hgh: 20937.31
 select case when msa_high >= 50 and msa_high <= 60 then 'low' 
             when msa_high >  60 and msa_high <= 70 then 'medium'
-	    when msa_high >  70 then 'high'
+	        when msa_high >  70 then 'high'
 	    end as edu_lvl
 	   ,(sum(rev)/sum(nday)) as avgrev       -- avoid double average
 from store_msa 
@@ -70,7 +70,7 @@ select (sum(rev)/sum(nday)) as avgrev                        -- avoid double ave
 		,state
 from (
 	select top 1 city
-        	,state
+        ,state
 		,msa_income
 		,store
 	from store_msa
@@ -115,7 +115,7 @@ left join skuinfo s
 
 -- get the sku number: 3733090 w/ highest std
 select top 3 stddev_samp(sprice) as std
-	,sku
+	    ,sku
 from trnsact
 group by sku
 having sum(quantity) > 100
@@ -157,7 +157,7 @@ order by dailyrev desc;
 -- increase in average daily sales revenue from November to December? 
 -- answer: Clinique, Charlotte, NC, 3.31%
 select st.city
-		,st.state
+	    ,st.state
 		,d.deptdesc
 		,perinc
 from(
