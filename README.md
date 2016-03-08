@@ -1,3 +1,4 @@
 # Courera-Managing-Big-Data-with-MySQL
 
-Exercise 5 and Quiz 5 for Coursera MySQL &amp; Teradata Course
+I know many people, including myself feel the questions in quiz 5 are kind of difficult. 
+Here I compiled my solutions for both Exercise 5 and Quiz 5, hopefully it could provide some insights for new learners like me. 
