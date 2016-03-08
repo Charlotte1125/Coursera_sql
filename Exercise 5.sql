@@ -8,10 +8,10 @@ order by ym;
 -- Exercise 2. Use a CASE statement within an aggregate function to determine which sku
 -- had the greatest total sales during the combined summer months of June, July, and August.
 select distinct sku
-		,sum(case when extract(month from saledate) = 6 then amt end) as jun
-		,sum(case when extract(month from saledate) = 7 then amt end) as july
-		,sum(case when extract(month from saledate) = 8 then amt end) as aug
-		,(jun + july + aug) as total
+	,sum(case when extract(month from saledate) = 6 then amt end) as jun
+	,sum(case when extract(month from saledate) = 7 then amt end) as july
+	,sum(case when extract(month from saledate) = 8 then amt end) as aug
+	,(jun + july + aug) as total
 from trnsact  
 group by sku
 order by total desc;
@@ -20,11 +20,10 @@ order by total desc;
 -- table for each month/year/store combination in the database? Sort your results by the
 -- number of days per combination in ascending order.
 select distinct (extract(month from saledate) || extract(year from saledate) || store) as mys
-	   ,count(mys) as num
+	,count(mys) as num
 from trnsact 
 group by mys
 order by num;
-
 
 -- Exercise 4. What is the average daily revenue for each store/month/year combination in
 -- the database? Calculate this by dividing the total revenue for a group by the number of
@@ -43,19 +42,21 @@ order by dailyrev;
 -- answer: low: 34159.76, medium: 25037.89, hgh: 20937.31
 select case when msa_high >= 50 and msa_high <= 60 then 'low' 
             when msa_high >  60 and msa_high <= 70 then 'medium'
-			when msa_high >  70 then 'high'
+	    when msa_high >  70 then 'high'
 	    end as edu_lvl
 	   ,(sum(rev)/sum(nday)) as avgrev       -- avoid double average
 from store_msa 
-left join (select distinct (extract(month from saledate) || extract(year from saledate)) as my,
-				sum(amt)as rev, store, 
-				count(distinct saledate) as nday
-			from trnsact 
-			group by my, store
-			where stype = 'p' 
-				and oreplace(my, ' ', '') not like '%82005%' -- examine only purchases and excludes all data from  Aug. 2005 
-			having nday > 20 								 -- excludes all stores with less than 20 days of data
-			)as rev 
+left join (
+	select distinct (extract(month from saledate) || extract(year from saledate)) as my
+		,sum(amt)as rev, store
+		,count(distinct saledate) as nday
+	from trnsact 
+	group by my, store
+	where stype = 'p' 
+		and oreplace(my, ' ', '') not like '%82005%' -- examine only purchases and excludes all data from  Aug. 2005 
+	having nday > 20 				     -- excludes all stores with less than 20 days of data
+	)
+	as rev 
 on store_msa.store = rev.store
 group by edu_lvl;
 
@@ -67,13 +68,15 @@ group by edu_lvl;
 select (sum(rev)/sum(nday)) as avgrev                        -- avoid double average
         ,city
 		,state
-from (select top 1 city
-        ,state
+from (
+	select top 1 city
+        	,state
 		,msa_income
 		,store
-		from store_msa
-		order by msa_income desc                             -- change to `ase` to get the store w/lowest median income
-		) as highinc
+	from store_msa
+	order by msa_income desc                             -- change to `ase` to get the store w/lowest median income
+	)
+	as highinc
 left join (select distinct (extract(month from saledate) || extract(year from saledate)) as my
             ,sum(amt)as rev
 			,store
@@ -83,7 +86,7 @@ left join (select distinct (extract(month from saledate) || extract(year from sa
 			where stype = 'p' 
 				and oreplace(my, ' ', '') not like '%82005%' -- examine only purchases and excludes all data from  Aug. 2005 
 			having nday > 20 				                 -- excludes all stores with less than 20 days of data
-			)as rev 
+			) as rev 
 on highinc.store = rev.store
 group by city
          ,state;
@@ -93,12 +96,13 @@ group by city
 -- answer: cabernet, std = 178.6
 select brand
        ,std
-from(select top 1 stddev_samp(sprice) as std
-			,sku
-		from trnsact
-		group by sku
-		having sum(quantity) > 100
-		order by std desc
+from(
+	select top 1 stddev_samp(sprice) as std
+		,sku
+	from trnsact
+	group by sku
+	having sum(quantity) > 100
+	order by std desc
 	) as t
 left join skuinfo s
 	on s.sku = t.sku;
@@ -109,10 +113,10 @@ left join skuinfo s
 -- get the sku number: 3733090 w/ highest std
 select top 2 stddev_samp(sprice) as std
 		,sku
-		from trnsact
-		group by sku
-		having sum(quantity) > 100
-		order by std desc;
+from trnsact
+group by sku
+having sum(quantity) > 100
+order by std desc;
 
 -- examine the transactions, it seems that one entry is wrong with sprice as 5005 
 -- second highest std sku = 2762683 is the actual one with hightest std in sprice
@@ -122,18 +126,19 @@ where sku = '3733090';
 
 -- Exercise 9: What was the average daily revenue Dillard’s brought in during each month of
 -- the year?
--- answer:  12 2004 11333356.01
---			2  2005 7363752.69
---			7  2005 7271088.69
---			4  2005 6949616.95
---			3  2005 6736315.39
---			5  2005 6666962.59
---			6  2005 6524845.42
---			11 2004 6296913.50
---			10 2004 6106357.90
---			1  2005 5836833.31
---			8  2004 5616841.37
---			9  2004 5596588.02
+-- answer:  
+--	12 2004 11333356.01
+--	2  2005 7363752.69
+--	7  2005 7271088.69
+--	4  2005 6949616.95
+--	3  2005 6736315.39
+--	5  2005 6666962.59
+--	6  2005 6524845.42
+--	11 2004 6296913.50
+--	10 2004 6106357.90
+--	1  2005 5836833.31
+--	8  2004 5616841.37
+--	9  2004 5596588.02
 select distinct (extract(month from saledate) || extract(year from saledate)) as my
 		,(sum(amt)/count(distinct saledate)) as dailyrev
 from trnsact 
@@ -148,18 +153,19 @@ order by dailyrev desc;
 -- increase in average daily sales revenue from November to December? 
 -- answer: Clinique, Charlotte, NC, 3.31%
 select st.city
-	   ,st.state
-	   ,d.deptdesc
-	   ,perinc
-from(select distinct store
-			,sku
-			,sum(case when extract(month from saledate) =  11 then amt end) as nrev
-			,sum(case when extract(month from saledate) =  12 then amt end) as drev
-			,count(distinct case when extract(month from saledate) =  11 then saledate end) as novday
-			,count(distinct case when extract(month from saledate) =  12 then saledate end) as decday
-			,nrev/novday as ndailyrev
-			,drev/decday as ddailyrev
-			,(ddailyrev-ndailyrev)/ndailyrev as perinc
+		,st.state
+		,d.deptdesc
+		,perinc
+from(
+	select distinct store
+		,sku
+		,sum(case when extract(month from saledate) =  11 then amt end) as nrev
+		,sum(case when extract(month from saledate) =  12 then amt end) as drev
+		,count(distinct case when extract(month from saledate) =  11 then saledate end) as novday
+		,count(distinct case when extract(month from saledate) =  12 then saledate end) as decday
+		,nrev/novday as ndailyrev
+		,drev/decday as ddailyrev
+		,(ddailyrev-ndailyrev)/ndailyrev as perinc
 	from trnsact 
 	group by store
 	         ,sku
@@ -168,7 +174,7 @@ from(select distinct store
 			not like '%82005%'                -- examine only purchases and excludes all data from  Aug. 2005 
 	having  novday > 20 
 		and decday > 20                       -- excludes all stores with less than 20 days of data
-	)as rev
+	) as rev
 left join skuinfo s
 	on s.sku = rev.sku
 left join store_msa st
@@ -176,18 +182,19 @@ left join store_msa st
 left join deptinfo d
 	on s.dept = d.dept
 group by st.city
-		 ,st.state
-		 ,d.deptdesc
-		 ,perinc
+	,st.state
+	,d.deptdesc
+	,perinc
 order by perinc desc;
 
 -- Exercise 11: What is the city and state of the store that had the greatest decrease in
 -- average daily revenue from August to September?
 -- answer: Louisville, KY, -442.94
 select st.city
-	  ,st.state
-	  ,decr
-from(select distinct store
+		,st.state
+		,decr
+from(
+	select distinct store
 			,sku
 			,sum(case when extract(month from saledate) =  8 then amt end) as augrev
 			,sum(case when extract(month from saledate) =  9 then amt end) as septrev
@@ -204,12 +211,12 @@ from(select distinct store
 			not like '%82005%'                -- examine only purchases and excludes all data from  Aug. 2005 
 	having   augday > 20 
 		and septday > 20   	  -- excludes all stores with less than 20 days of data
-	)as rev
+	) as rev
 left join store_msa st
 	on rev.store = st.store
 group by st.city
-		 ,st.state
-		 ,decr
+		,st.state
+		,decr
 order by decr asc;
 
 -- Exercise 12: Determine the month of maximum total revenue for each store. Count the
@@ -235,7 +242,8 @@ select count(case when mm = 1 then mm end) as jancnt
 	   ,count(case when mm = 10 then mm end) as otccnt
 	   ,count(case when mm = 11 then mm end) as novcnt
 	   ,count(case when mm = 12 then mm end) as deccnt		
-from (select distinct store
+from (
+	select distinct store
 		   ,extract(month from saledate) as mm
 		   ,sum(amt) as monthrev
 		   ,row_number() over (partition by store order by monthrev desc) as row_num
@@ -246,7 +254,7 @@ from (select distinct store
 			not like '%82005%' 						  -- examine only purchases and excludes all data from  Aug. 2005 
 	having count(distinct saledate) > 20			  -- excludes all stores with less than 20 days of date
 	qualify row_num = 1								  -- limit the output of row_num (rank) to 1
-	)as rev;
+	) as rev;
 	
 -- determine max average daily rev for each store and count
 -- answer: 317 in Dec.
@@ -266,7 +274,8 @@ select  count(case when mm = 1 then mm end) as jancnt
 	   ,count(case when mm = 10 then mm end) as otccnt
 	   ,count(case when mm = 11 then mm end) as novcnt
 	   ,count(case when mm = 12 then mm end) as deccnt		
-from (select distinct store
+from (
+	select distinct store
 		    ,extract(month from saledate) as mm
 		    ,sum(amt)/count(distinct saledate) as dailyrev
 		    ,row_number() over (partition by store order by dailyrev desc) as row_num
