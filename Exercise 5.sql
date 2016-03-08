@@ -97,12 +97,15 @@ group by city
 select brand
        ,std
 from(
-	select top 1 stddev_samp(sprice) as std
-		,sku
+	select top 3 stddev_samp(sprice) as std
+			,sku
 	from trnsact
 	group by sku
 	having sum(quantity) > 100
-	order by std desc
+	where stype = 'p' 
+		and oreplace((extract(month from saledate) || extract(year from saledate)), ' ', '') 
+			not like '%82005%' 
+	order by std desc;
 	) as t
 left join skuinfo s
 	on s.sku = t.sku;
@@ -111,18 +114,19 @@ left join skuinfo s
 -- sprice, but only consider skus that are part of more than 100 transactions.
 
 -- get the sku number: 3733090 w/ highest std
-select top 2 stddev_samp(sprice) as std
-		,sku
+select top 3 stddev_samp(sprice) as std
+	,sku
 from trnsact
 group by sku
 having sum(quantity) > 100
+where stype = 'p' 
+	and oreplace((extract(month from saledate) || extract(year from saledate)), ' ', '') 
+		not like '%82005%' 
 order by std desc;
 
--- examine the transactions, it seems that one entry is wrong with sprice as 5005 
--- second highest std sku = 2762683 is the actual one with hightest std in sprice
 select * 
 from trnsact
-where sku = '3733090';
+where sku = '5453849';
 
 -- Exercise 9: What was the average daily revenue Dillard’s brought in during each month of
 -- the year?
